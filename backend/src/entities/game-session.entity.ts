@@ -56,13 +56,13 @@ export class GameSession {
         }>;
     }>;
 
-    @Column('simple-json')
+    @Column('simple-json', { nullable: true })
     currentBattle: {
         opponentIndex: number;
         playerActiveIndex: number;
         opponentActiveIndex: number;
         turn: number;
-    };
+    } | null;
 
     @Column()
     currentChallenge: number;
@@ -86,7 +86,7 @@ export class GameSession {
     isCompleted: boolean;
 
     @Column({ nullable: true })
-    result: 'VICTORY' | 'DEFEAT';
+    result: 'VICTORY' | 'DEFEAT' | 'CANCELLED';
 
     @Column('simple-json', { nullable: true, default: '[]' })
     swapsMade: Array<{

@@ -30,7 +30,7 @@ export class GameNotifier {
         this.observers.forEach(observer => observer.onGamePhaseChange(oldPhase, newPhase));
     }
 
-    notifyGameEnd(session: any, result: 'VICTORY' | 'DEFEAT'): void {
+    notifyGameEnd(session: any, result: 'VICTORY' | 'DEFEAT' | 'CANCELLED'): void {
         this.observers.forEach(observer => observer.onGameEnd(session, result));
     }
 }

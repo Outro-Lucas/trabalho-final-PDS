@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, HttpException, HttpStatus, Patch } from '@nestjs/common';
 import { GameService } from '../services/game.service';
 import { StartGameDto, SelectTeamDto, BattleTurnDto, SwapPokemonDto } from '../dto/game.dto';
 
@@ -87,6 +87,18 @@ export class GameController {
             throw new HttpException(
                 error.message,
                 HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    @Patch(':sessionId/cancel')
+    async cancelGame(@Param('sessionId') sessionId: string) {
+        try {
+            return await this.gameService.cancelGame(sessionId);
+        } catch (error) {
+            throw new HttpException(
+                error.message,
+                HttpStatus.NOT_FOUND,
             );
         }
     }

@@ -40,7 +40,7 @@ export class GameService {
             // 2. Gerar 3 oponentes com times aleatórios
             const opponents = await this.pokeApiService.generateOpponents(3);
 
-            // 3. Criar sessão de jogo
+            // 3. Criar sessão de jogo - INICIALIZE TODOS OS CAMPOS OBRIGATÓRIOS
             const session = new GameSession();
             session.playerName = playerName;
             session.rentalPokemon = rentalPokemon;
@@ -52,9 +52,15 @@ export class GameService {
             session.gameState = 'TEAM_SELECTION';
             session.isCompleted = false;
 
+            // 4. INICIALIZE currentBattle como null (já que ainda não começou a batalha)
+            session.currentBattle = null;
+
+            // 5. Inicialize swapsMade como array vazio
+            session.swapsMade = [];
+
             const savedSession = await this.gameSessionRepository.save(session);
 
-            // 4. Notificar início do jogo
+            // 6. Notificar início do jogo
             this.gameNotifier.notifyBattleStart(savedSession);
 
             return {
@@ -100,13 +106,12 @@ export class GameService {
                 pokemonId: id,
                 currentHp: maxHp,
                 maxHp: maxHp,
-                // Adicione estas informações
                 name: pokemon.name,
                 types: pokemon.types,
             };
         });
 
-        // Configurar batalha inicial
+        // Configurar batalha inicial - AGORA INICIALIZE currentBattle CORRETAMENTE
         session.currentBattle = {
             opponentIndex: 0,
             playerActiveIndex: 0,
@@ -297,5 +302,31 @@ export class GameService {
 
     private calculateHP(baseHP: number, level: number): number {
         return Math.floor(((2 * baseHP * level) / 100) + level + 10);
+    }
+
+
+    async cancelGame(sessionId: string): Promise<any> {
+        const session = await this.gameSessionRepository.findOne({
+            where: { sessionId },
+        });
+
+        if (!session) {
+            throw new Error('Sessão não encontrada');
+        }
+
+        session.gameState = 'GAME_OVER';
+        session.result = 'CANCELLED';
+        session.isCompleted = true;
+        session.completedAt = new Date();
+
+        await this.gameSessionRepository.save(session);
+
+        this.gameNotifier.notifyGameEnd(session, 'CANCELLED');
+
+        return {
+            success: true,
+            gameState: session.gameState,
+            result: session.result,
+        };
     }
 }
