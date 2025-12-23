@@ -1,0 +1,217 @@
+<div class="container" *ngIf="session && playerActivePokemon && opponentActivePokemon">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h2>Battle {{ session.currentChallenge || 1 }}/3</h2>
+        <div class="row">
+            <div class="col">
+                <h4 class="text-success">{{ session.playerName }}</h4>
+                <div class="badge bg-success">Wins: {{ session.battlesWon || 0 }}</div>
+            </div>
+            <div class="col">
+                <h4 class="text-danger">{{ currentOpponent?.name || 'Wild Pokémon' }}</h4>
+                <div class="badge bg-danger">{{ (currentOpponent?.difficulty || 'MEDIUM') | uppercase }}</div>
+            </div>
+        </div>
+        <div class="mt-2">
+            Turn: {{ session.currentBattle?.turn || 1 }}
+        </div>
+    </div>
+
+    <!-- Battle Arena -->
+    <div class="row mb-5">
+        <!-- Opponent -->
+        <div class="col-md-6 text-center">
+            <div class="card bg-dark border-danger mb-3">
+                <div class="card-header">
+                    <h5 class="text-danger">{{ opponentActivePokemon.name | uppercase }}</h5>
+                </div>
+                <div class="card-body">
+                    <img [src]="opponentActivePokemon.sprite || getDefaultSprite()" width="150" class="img-flip mb-3">
+
+                    <div class="hp-bar mb-2">
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-danger"
+                                [style.width.%]="getHPPercentage(opponentActivePokemon)">
+                                <strong>{{ opponentActivePokemon.currentHp }}/{{ opponentActivePokemon.maxHp }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span *ngFor="let type of opponentActivePokemon.types" class="badge me-1 mb-1"
+                            [style.background-color]="getTypeColor(type)">
+                            {{ type | uppercase }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player -->
+        <div class="col-md-6 text-center">
+            <div class="card bg-dark border-success mb-3">
+                <div class="card-header">
+                    <h5 class="text-success">{{ playerActivePokemon.name | uppercase }}</h5>
+                </div>
+                <div class="card-body">
+                    <img [src]="playerActivePokemon.sprite || getDefaultSprite()" width="150" class="mb-3">
+
+                    <div class="hp-bar mb-2">
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" [style.width.%]="getHPPercentage(playerActivePokemon)">
+                                <strong>{{ playerActivePokemon.currentHp }}/{{ playerActivePokemon.maxHp }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span *ngFor="let type of playerActivePokemon.types" class="badge me-1 mb-1"
+                            [style.background-color]="getTypeColor(type)">
+                            {{ type | uppercase }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Battle Log -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-warning">
+                <div class="card-header">
+                    <h5 class="text-warning">Battle Log</h5>
+                </div>
+                <div class="card-body" style="height: 200px; overflow-y: auto;">
+                    <div *ngIf="battleLog.length === 0" class="text-muted">
+                        Battle actions will appear here...
+                    </div>
+                    <div *ngFor="let log of battleLog" class="log-entry mb-1">
+                        {{ log }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Moves -->
+    <div class="row mb-4" *ngIf="!isBattleOver">
+        <div class="col-12">
+            <div class="card bg-dark border-info">
+                <div class="card-header">
+                    <h5 class="text-info">Select Move</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div *ngFor="let move of playerActivePokemon.moves || getDefaultMoves(); let i = index"
+                            class="col-md-3 col-6">
+                            <button class="btn btn-outline-light w-100 h-100 py-3" (click)="executeTurn(i)"
+                                [disabled]="isLoading">
+                                <div class="move-name fw-bold">{{ move.name | titlecase }}</div>
+                                <div class="move-details small mt-2">
+                                    <span class="badge" [style.background-color]="getTypeColor(move.type)">
+                                        {{ move.type | uppercase }}
+                                    </span>
+                                    <div class="mt-1">Power: {{ move.power }}</div>
+                                    <div>Accuracy: {{ move.accuracy }}%</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div *ngIf="isLoading" class="text-center mt-3">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="text-warning mt-2">Processing turn...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Battle Over -->
+    <div *ngIf="isBattleOver" class="text-center mb-4">
+        <div class="alert" [class.alert-success]="battleResult?.battleStatus?.winner === 'player'"
+            [class.alert-danger]="battleResult?.battleStatus?.winner === 'opponent'">
+            <h3>{{ battleResult?.battleStatus?.message || 'Battle Over!' }}</h3>
+
+            <div *ngIf="battleResult?.battleStatus?.winner === 'player'" class="mt-3">
+                <button *ngIf="session.pokemonSwapsAvailable > 0" class="btn btn-warning btn-lg me-3"
+                    (click)="goToSwap()">
+                    Swap Pokémon ({{ session.pokemonSwapsAvailable }} available)
+                </button>
+                <button *ngIf="session.battlesWon < 3" class="btn btn-success btn-lg" (click)="nextBattle()">
+                    Next Battle
+                </button>
+                <button *ngIf="session.battlesWon >= 3" class="btn btn-primary btn-lg" (click)="endGame()">
+                    Complete Challenge!
+                </button>
+            </div>
+
+            <div *ngIf="battleResult?.battleStatus?.winner === 'opponent'" class="mt-3">
+                <button class="btn btn-danger btn-lg me-3" (click)="restartGame()">
+                    Try Again
+                </button>
+                <button class="btn btn-outline-light btn-lg" (click)="restartGame()">
+                    Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Team -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h5 class="text-light">Your Team</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div *ngFor="let member of session.playerTeam; let i = index" class="col-md-4">
+                            <div class="team-member p-3 border rounded"
+                                [class.border-success]="i === (session.currentBattle?.playerActiveIndex || 0)"
+                                [class.bg-dark]="member.currentHp > 0" [class.bg-secondary]="member.currentHp <= 0">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <img [src]="getDefaultSprite()" width="50">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ member.name | titlecase }}</h6>
+                                        <div class="small">
+                                            <span *ngFor="let type of member.types" class="badge me-1"
+                                                [style.background-color]="getTypeColor(type)">
+                                                {{ type }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-success"
+                                                    [style.width.%]="(member.currentHp / member.maxHp) * 100">
+                                                </div>
+                                            </div>
+                                            <small class="d-block mt-1">
+                                                HP: {{ member.currentHp }}/{{ member.maxHp }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Loading -->
+<div *ngIf="!session" class="text-center mt-5">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading battle data...</p>
+</div>

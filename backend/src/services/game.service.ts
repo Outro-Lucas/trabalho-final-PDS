@@ -255,6 +255,7 @@ export class GameService {
         };
     }
 
+    // Atualize o método getGameStatus:
     async getGameStatus(sessionId: string): Promise<any> {
         const session = await this.gameSessionRepository.findOne({
             where: { sessionId },
@@ -264,6 +265,7 @@ export class GameService {
             throw new Error('Sessão não encontrada');
         }
 
+        // RETORNE TODOS OS DADOS DA SESSÃO
         return {
             sessionId: session.sessionId,
             playerName: session.playerName,
@@ -275,6 +277,12 @@ export class GameService {
             currentBattle: session.currentBattle,
             isCompleted: session.isCompleted,
             result: session.result,
+            // ADICIONE ESTES CAMPOS CRUCIAIS:
+            rentalPokemon: session.rentalPokemon,
+            opponents: session.opponents,
+            swapsMade: session.swapsMade || [],
+            createdAt: session.createdAt,
+            completedAt: session.completedAt
         };
     }
 

@@ -1,0 +1,16 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.card {
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.badge {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+}

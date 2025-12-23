@@ -1,0 +1,39 @@
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card bg-dark text-light border-danger">
+            <div class="card-body text-center p-5">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" class="mb-4"
+                    width="100" alt="Pikachu">
+
+                <h2 class="card-title mb-4">Pokémon Battle Tent</h2>
+
+                <div class="mb-4">
+                    <label for="playerName" class="form-label">Enter your trainer name:</label>
+                    <input type="text" class="form-control bg-secondary text-light border-danger" id="playerName"
+                        [(ngModel)]="playerName" placeholder="Ash Ketchum">
+                </div>
+
+                <div class="mb-4">
+                    <h5>Game Rules:</h5>
+                    <ul class="text-start small">
+                        <li>Choose 3 Pokémon from 6 random rentals</li>
+                        <li>Battle 3 trainers in sequence</li>
+                        <li>After each victory, swap one Pokémon (blind)</li>
+                        <li>All Pokémon are level 30</li>
+                        <li>No status moves - only damage!</li>
+                    </ul>
+                </div>
+
+                <button class="btn btn-danger btn-lg w-100" (click)="startGame()" [disabled]="!playerName || isLoading">
+                    <span *ngIf="isLoading">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Starting...
+                    </span>
+                    <span *ngIf="!isLoading">
+                        Start Battle Tent Challenge!
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

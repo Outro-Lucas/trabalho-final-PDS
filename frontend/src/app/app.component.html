@@ -1,0 +1,26 @@
+<div class="container-fluid bg-dark text-light min-vh-100">
+  <nav class="navbar navbar-dark bg-danger mb-4">
+    <div class="container">
+      <a class="navbar-brand" routerLink="/">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" width="30"
+          height="30" class="d-inline-block align-top" alt="Pokémon">
+        Pokémon Battle Tent
+      </a>
+      <div *ngIf="currentSession$ | async as session" class="text-white">
+        <small>
+          Player: {{ session.playerName }} |
+          Battle {{ session.currentChallenge }}/3 |
+          Wins: {{ session.battlesWon }}
+        </small>
+      </div>
+    </div>
+  </nav>
+
+  <router-outlet></router-outlet>
+
+  <footer class="mt-5 py-3 border-top text-center">
+    <small class="text-muted">
+      Pokémon Battle Tent &copy; 2024 | Powered by PokeAPI
+    </small>
+  </footer>
+</div>

@@ -1,0 +1,118 @@
+<div class="container" *ngIf="session">
+    <div class="text-center mb-5">
+        <h2>Swap Pokémon</h2>
+        <p class="lead">
+            After defeating {{ currentOpponent?.name }}, you can swap one of your Pokémon with one of theirs.
+            <strong class="text-warning">You won't see their stats!</strong>
+        </p>
+        <div class="badge bg-warning text-dark">
+            Swaps Available: {{ session.pokemonSwapsAvailable }}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Your Team -->
+        <div class="col-md-6">
+            <h4 class="text-center text-success mb-4">Your Team</h4>
+            <div class="row g-3">
+                <div *ngFor="let member of session.playerTeam" class="col-12">
+                    <div class="card border-3" [class.border-success]="selectedPlayerPokemon === member.pokemonId"
+                        [class.border-secondary]="selectedPlayerPokemon !== member.pokemonId"
+                        (click)="selectPlayerPokemon(member.pokemonId)">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <img [src]="getPokemonSprite(member.pokemonId)" width="60" class="me-3">
+                                <div>
+                                    <h5 class="text-capitalize">{{ member.name }}</h5>
+                                    <div>
+                                        <span *ngFor="let type of member.types" class="badge me-1"
+                                            [style.background-color]="getTypeColor(type)">
+                                            {{ type }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success"
+                                                [style.width.%]="(member.currentHp / member.maxHp) * 100">
+                                            </div>
+                                        </div>
+                                        <small>HP: {{ member.currentHp }}/{{ member.maxHp }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center"
+                            [class.bg-success]="selectedPlayerPokemon === member.pokemonId">
+                            <small *ngIf="selectedPlayerPokemon === member.pokemonId">✓ Selected</small>
+                            <small *ngIf="selectedPlayerPokemon !== member.pokemonId">Click to select</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opponent's Pokémon -->
+        <div class="col-md-6">
+            <h4 class="text-center text-danger mb-4">{{ currentOpponent?.name }}'s Pokémon</h4>
+            <p class="text-center text-muted small">
+                <i>You can only see what you battled against them!</i>
+            </p>
+            <div class="row g-3">
+                <div *ngFor="let pokemon of currentOpponent?.pokemon; let i = index" class="col-12">
+                    <div class="card border-3" [class.border-danger]="selectedOpponentPokemon === i"
+                        [class.border-secondary]="selectedOpponentPokemon !== i" (click)="selectOpponentPokemon(i)">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h5 class="text-capitalize">{{ pokemon.name }}</h5>
+                                    <div>
+                                        <span *ngFor="let type of pokemon.types" class="badge me-1"
+                                            [style.background-color]="getTypeColor(type)">
+                                            {{ type }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            You saw it use:
+                                            <span *ngFor="let move of pokemon.moves.slice(0, 2)" class="ms-1">
+                                                {{ move.name }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <img [src]="pokemon.sprite || getDefaultSprite()" width="60" class="img-flip">
+                                    <div class="mt-2">
+                                        <div class="progress" style="height: 10px; width: 100px;">
+                                            <div class="progress-bar bg-danger"
+                                                [style.width.%]="(pokemon.currentHp / pokemon.maxHp) * 100">
+                                            </div>
+                                        </div>
+                                        <small>HP: ???/???</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center" [class.bg-danger]="selectedOpponentPokemon === i">
+                            <small *ngIf="selectedOpponentPokemon === i">✓ Selected</small>
+                            <small *ngIf="selectedOpponentPokemon !== i">Click to select</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <button class="btn btn-warning btn-lg px-5 me-3" (click)="performSwap()" [disabled]="!canSwap()">
+            Swap Pokémon
+        </button>
+        <!-- REMOVA O BOTÃO DE SKIP SWAP -->
+    </div>
+
+    <div class="mt-4 text-center">
+        <small class="text-muted">
+            Remember: You're swapping blind! You won't know the new Pokémon's stats until you battle with it.
+        </small>
+    </div>
+</div>

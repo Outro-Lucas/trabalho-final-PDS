@@ -1,0 +1,88 @@
+<div class="container" *ngIf="session$ | async as session">
+    <div class="text-center mb-5">
+        <h2>Choose Your Rental Team</h2>
+        <p class="lead">Select exactly 3 Pokémon to begin your challenge</p>
+        <div class="d-flex justify-content-center gap-2 mb-3">
+            <span *ngFor="let type of selectedTypes" class="badge" [style.background-color]="getTypeColor(type)">
+                {{ type }}
+            </span>
+        </div>
+        <div class="selected-count">
+            <span class="badge bg-{{selectedPokemon.length === 3 ? 'success' : 'warning'}} fs-5">
+                {{ selectedPokemon.length }}/3 Selected
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div *ngFor="let pokemon of session.rentalPokemon" class="col-md-4 col-lg-2">
+            <div class="card h-100 border-3" [class.border-success]="isSelected(pokemon)"
+                [class.border-danger]="!isSelected(pokemon)"
+                [class.opacity-50]="selectedPokemon.length >= 3 && !isSelected(pokemon)"
+                (click)="togglePokemon(pokemon)">
+
+                <div class="card-header text-center bg-dark">
+                    <h5 class="mb-0 text-capitalize">{{ pokemon.name }}</h5>
+                </div>
+
+                <div class="card-body text-center p-2">
+                    <img [src]="pokemon.sprite || getDefaultSprite()" [alt]="pokemon.name" class="img-fluid mb-2"
+                        width="96">
+
+                    <div class="mb-2">
+                        <span *ngFor="let type of pokemon.types" class="badge me-1 mb-1"
+                            [style.background-color]="getTypeColor(type)">
+                            {{ type }}
+                        </span>
+                    </div>
+
+                    <div class="stats-grid small">
+                        <div>HP: {{ pokemon.baseStats.hp }}</div>
+                        <div>ATK: {{ pokemon.baseStats.attack }}</div>
+                        <div>DEF: {{ pokemon.baseStats.defense }}</div>
+                        <div>SPA: {{ pokemon.baseStats.specialAttack }}</div>
+                        <div>SPD: {{ pokemon.baseStats.specialDefense }}</div>
+                        <div>SPE: {{ pokemon.baseStats.speed }}</div>
+                    </div>
+
+                    <div class="mt-2">
+                        <small class="text-muted">Moves:</small>
+                        <div *ngFor="let move of pokemon.moves.slice(0, 2)" class="small">
+                            {{ move.name }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center bg-dark">
+                    <span *ngIf="isSelected(pokemon)" class="text-success">
+                        ✓ Selected
+                    </span>
+                    <span *ngIf="!isSelected(pokemon)" class="text-muted">
+                        Click to select
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <!-- <button class="btn btn-success btn-lg px-5" (click)="confirmSelection()"
+            [disabled]="selectedPokemon.length !== 3">
+            Start Battle! ({{ selectedPokemon.length }}/3)
+        </button> -->
+        <button class="btn btn-success btn-lg px-5" (click)="confirmSelection()"
+            [disabled]="selectedPokemon.length !== 3 || isLoading">
+            <span *ngIf="!isLoading">
+                Start Battle! ({{ selectedPokemon.length }}/3)
+            </span>
+            <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Loading Battle...
+            </span>
+        </button>
+
+        <button class="btn btn-outline-light btn-lg ms-3" (click)="cancelGame()">
+            Cancel
+        </button>
+    </div>
+</div>

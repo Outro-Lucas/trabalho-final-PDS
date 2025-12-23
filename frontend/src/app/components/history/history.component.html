@@ -1,0 +1,125 @@
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h2 class="text-warning">Battle History</h2>
+        <p class="lead">Previous attempts for <strong>{{ playerName }}</strong></p>
+    </div>
+
+    <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div *ngIf="!isLoading && historyData" class="row">
+        <!-- Stats Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Attempts</h5>
+                    <h1 class="display-1 text-info">{{ historyData.totalAttempts }}</h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Victories</h5>
+                    <h1 class="display-1 text-success">{{ historyData.victories }}</h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Win Rate</h5>
+                    <h1 class="display-1" [ngClass]="{
+                'text-success': winRate >= 50,
+                'text-warning': winRate >= 30 && winRate < 50,
+                'text-danger': winRate < 30
+              }">
+                        {{ winRate }}%
+                    </h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attempts List -->
+        <div class="col-12">
+            <h4 class="mb-3">Recent Battles</h4>
+
+            <div *ngIf="historyData.attempts.length === 0" class="alert alert-info">
+                No battle history found for {{ playerName }}
+            </div>
+
+            <div *ngFor="let attempt of historyData.attempts" class="card mb-3 bg-dark border-secondary">
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Result and Date -->
+                        <div class="col-md-3">
+                            <span class="badge" [ngClass]="{
+                          'bg-success': attempt.result === 'VICTORY',
+                          'bg-danger': attempt.result === 'DEFEAT'
+                        }">
+                                {{ attempt.result }}
+                            </span>
+                            <div class="mt-2 small text-muted">
+                                {{ attempt.completedAt | date:'medium' }}
+                            </div>
+                        </div>
+
+                        <!-- Battle Stats -->
+                        <div class="col-md-3">
+                            <div class="mb-1">
+                                <small class="text-muted">Battles Won:</small>
+                                <div class="h5">{{ attempt.battlesWon }}/3</div>
+                            </div>
+                            <div>
+                                <small class="text-muted">Total Turns:</small>
+                                <div>{{ attempt.totalTurns }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Team Used -->
+                        <div class="col-md-4">
+                            <small class="text-muted d-block mb-1">Team Used:</small>
+                            <div>
+                                <span *ngFor="let pokemon of attempt.teamUsed" class="badge me-1 mb-1"
+                                    [style.background-color]="getTypeColor(pokemon.types[0])">
+                                    {{ pokemon.name | titlecase }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Session ID -->
+                        <div class="col-md-2">
+                            <small class="text-muted d-block mb-1">Session:</small>
+                            <code class="small">{{ attempt.sessionId.substring(0, 8) }}...</code>
+                        </div>
+                    </div>
+
+                    <!-- Swaps Made -->
+                    <div *ngIf="attempt.swapsMade && attempt.swapsMade.length > 0" class="mt-3 pt-3 border-top">
+                        <small class="text-muted d-block mb-2">Pokémon Swaps:</small>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span *ngFor="let swap of attempt.swapsMade" class="badge bg-warning text-dark">
+                                {{ swap.oldPokemon | titlecase }} → {{ swap.newPokemon | titlecase }}
+                                <small class="ms-1">(Battle {{ swap.atBattle }})</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button class="btn btn-outline-light me-2" routerLink="/start">
+            ← Back to Start
+        </button>
+        <button *ngIf="playerName" class="btn btn-primary" (click)="loadHistory()">
+            ↻ Refresh
+        </button>
+    </div>
+</div>

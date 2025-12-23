@@ -1,0 +1,39 @@
+.battle-field {
+  min-height: 400px;
+}
+.pokemon-card {
+  display: inline-block;
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.img-flip {
+  transform: scaleX(-1);
+}
+.battle-log {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.log-entry {
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.move-details {
+  margin-top: 5px;
+}
+.team-member {
+  transition: all 0.3s;
+}
+.team-member:hover {
+  transform: translateY(-2px);
+}
+.very-small {
+  font-size: 0.7rem;
+}

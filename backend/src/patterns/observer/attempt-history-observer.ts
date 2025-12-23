@@ -10,7 +10,7 @@ export class AttemptHistoryObserver implements GameObserver {
     ) { }
 
     onBattleStart(session: any): void {
-        console.log(`Batalha iniciada: ${session.playerName}`);
+        console.log(`Batalha iniciada: ${session.playerName}, ${session.sessionId}`);
     }
 
     onTurnComplete(session: any, result: any): void {
