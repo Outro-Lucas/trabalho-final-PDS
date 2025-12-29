@@ -40,6 +40,9 @@ export class Session {
   @Column({ type: 'text', nullable: true })
   result!: SessionResult | null;
 
+  @Column({ type: 'simple-json', nullable: true })
+  battleState!: any | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 
