@@ -1,178 +1,203 @@
-import { SessionService } from "./SessionService";
-
-type Turn = 'PLAYER' | 'CPU';
-
-interface Move {
-    name: string;
-    power: number;
-    type: string;
-}
-
-interface BattlePokemon {
-    name: string;
-    hp: number;
-    attack: number;
-    defense: number;
-    currentHp: number;
-    moves: Move[];
-}
-
-interface BattleState {
-    sessionId: string;
-    turn: Turn;
-    playerIndex: number;
-    cpuIndex: number;
-    playerTeam: BattlePokemon[];
-    cpuTeam: BattlePokemon[];
-    finished?: boolean;
-    winner?: 'PLAYER' | 'CPU';
-    log?: string;
-    forcedSwitch?: boolean;
-}
+import { AppDataSource } from '../database/data-source';
+import { Session } from '../entity/Session';
 
 export class BattleService {
-    private battles = new Map<string, BattleState>();
-    private sessionService = new SessionService();
+    private sessionRepo = AppDataSource.getRepository(Session);
 
-    async startBattle(sessionId: string): Promise<BattleState> {
-        if (this.battles.has(sessionId)) {
-            return this.battles.get(sessionId)!;
+    async startBattle(sessionId: string): Promise<Session> {
+        const session = await this.getSession(sessionId);
+
+        if (!session.team || !session.cpuTeam) {
+            throw new Error('Times não definidos');
         }
 
-        const session = await this.sessionService.getSessionById(sessionId);
-        if (!session) throw new Error('Session not found');
+        session.status = 'IN_BATTLE';
+        session.turn = 'PLAYER';
+        session.playerIndex = 0;
+        session.cpuIndex = 0;
 
-        if (!session.team || session.team.length === 0) {
-            throw new Error('Session has no player team');
+        return this.sessionRepo.save(session);
+    }
+
+    // dentro da classe BattleService (substitua os métodos correspondentes)
+
+    async playerAttack(sessionId: string, moveIndex: number): Promise<Session> {
+        const session = await this.getSession(sessionId);
+
+        console.log(`[playerAttack] session=${sessionId} turn=${session.turn} playerIndex=${session.playerIndex} cpuIndex=${session.cpuIndex}`);
+
+        if (session.turn !== 'PLAYER') {
+            console.log(`[playerAttack][ERR] not player turn (turn=${session.turn})`);
+            throw new Error('Não é o turno do jogador');
         }
 
-        if (!session.cpuTeam || session.cpuTeam.length === 0) {
-            throw new Error('Session has no cpu team');
+        const player = session.team![session.playerIndex];
+        const cpu = session.cpuTeam![session.cpuIndex];
+
+        if (!player) {
+            console.log('[playerAttack][ERR] player not found at index', session.playerIndex);
+            throw new Error('Player pokemon not found');
+        }
+        if (!cpu) {
+            console.log('[playerAttack][ERR] cpu not found at index', session.cpuIndex);
+            throw new Error('CPU pokemon not found');
         }
 
-        const playerTeam = session.team.map(p => ({
-            ...p,
-            currentHp: p.hp
-        }));
+        const move = player.moves && player.moves[moveIndex];
+        if (!move) {
+            console.log('[playerAttack][ERR] move invalid:', moveIndex, 'player.moves=', player.moves && player.moves.map((m: any) => m.name));
+            throw new Error('Movimento inválido');
+        }
 
-        const cpuTeam = session.cpuTeam.map(p => ({
-            ...p,
-            currentHp: p.hp
-        }));
+        const beforeHp = cpu.currentHp;
+        const damage = this.calculateDamage(player.attack, cpu.defense, move.power ?? 0);
 
-        const state = this.initialize(sessionId, playerTeam, cpuTeam);
-        return state;
-    }
+        console.log(`[playerAttack] ${player.name} uses ${move.name} (power=${move.power}) against ${cpu.name} (hp before=${beforeHp}) -> damage=${damage}`);
 
+        cpu.currentHp = Math.max(0, (Number(cpu.currentHp) || 0) - damage);
 
-    async getState(sessionId: string): Promise<BattleState> {
-        const battle = this.battles.get(sessionId);
-        if (!battle) throw new Error('Battle not found');
-        return battle;
-    }
+        console.log(`[playerAttack] ${cpu.name} hp after=${cpu.currentHp}`);
 
-    initialize(sessionId: string, playerTeam: BattlePokemon[], cpuTeam: BattlePokemon[]) {
-        const state: BattleState = {
-            sessionId,
-            turn: 'PLAYER',
-            playerIndex: 0,
-            cpuIndex: 0,
-            playerTeam,
-            cpuTeam
-        };
-        this.battles.set(sessionId, state);
-        return state;
-    }
-
-    async playerAttack(sessionId: string, moveIndex: number): Promise<BattleState> {
-        const battle = this.get(sessionId);
-        if (battle.turn !== 'PLAYER') throw new Error('Not player turn');
-
-        const attacker = battle.playerTeam[battle.playerIndex];
-        const defender = battle.cpuTeam[battle.cpuIndex];
-        const move = attacker.moves[moveIndex];
-
-        const damage = this.calculateDamage(attacker.attack, defender.defense, move.power);
-        defender.currentHp = Math.max(0, defender.currentHp - damage);
-
-        battle.log = `${attacker.name} used ${move.name} and dealt ${damage} damage`;
-
-        if (defender.currentHp === 0) {
-            if (!this.advanceCpu(battle)) {
-                battle.finished = true;
-                battle.winner = 'PLAYER';
-                return battle;
+        // CPU morreu?
+        if (cpu.currentHp === 0) {
+            console.log(`[playerAttack] ${cpu.name} fainted, attempting advanceCpu()`);
+            if (!this.advanceCpu(session)) {
+                session.status = 'FINISHED';
+                session.result = 'VICTORY';
+                console.log('[playerAttack] CPU has no more pokemon -> PLAYER VICTORY');
+                const saved = await this.sessionRepo.save(session);
+                console.log('[playerAttack] saved session after victory', { id: saved.id, status: saved.status, result: saved.result });
+                return saved;
+            } else {
+                console.log('[playerAttack] advanceCpu succeeded, new cpuIndex=', session.cpuIndex);
             }
         }
 
-        battle.turn = 'CPU';
-        return battle;
+        session.turn = 'CPU';
+        const saved = await this.sessionRepo.save(session);
+        console.log('[playerAttack] saved session after player attack', {
+            id: saved.id,
+            turn: saved.turn,
+            playerIndex: saved.playerIndex,
+            cpuIndex: saved.cpuIndex,
+            playerCurrentHp: saved.team && saved.team[saved.playerIndex] && saved.team[saved.playerIndex].currentHp,
+            cpuCurrentHp: saved.cpuTeam && saved.cpuTeam[saved.cpuIndex] && saved.cpuTeam[saved.cpuIndex].currentHp,
+        });
+
+        return saved;
     }
 
-    async cpuAttack(sessionId: string): Promise<BattleState> {
-        const battle = this.get(sessionId);
-        if (battle.turn !== 'CPU') throw new Error('Not CPU turn');
+    async cpuAttack(sessionId: string): Promise<Session> {
+        const session = await this.getSession(sessionId);
 
-        const attacker = battle.cpuTeam[battle.cpuIndex];
-        const defender = battle.playerTeam[battle.playerIndex];
-        const move = attacker.moves[Math.floor(Math.random() * attacker.moves.length)];
+        console.log(`[cpuAttack] session=${sessionId} turn=${session.turn} playerIndex=${session.playerIndex} cpuIndex=${session.cpuIndex}`);
 
-        const damage = this.calculateDamage(attacker.attack, defender.defense, move.power);
-        defender.currentHp = Math.max(0, defender.currentHp - damage);
+        if (session.turn !== 'CPU') {
+            console.log('[cpuAttack][ERR] not cpu turn (turn=', session.turn, ')');
+            throw new Error('Não é o turno da CPU');
+        }
 
-        battle.log = `${attacker.name} used ${move.name} and dealt ${damage} damage`;
+        const cpu = session.cpuTeam![session.cpuIndex];
+        const player = session.team![session.playerIndex];
 
-        if (defender.currentHp === 0) {
-            if (!this.advancePlayer(battle)) {
-                battle.finished = true;
-                battle.winner = 'CPU';
-                return battle;
+        if (!cpu) {
+            console.log('[cpuAttack][ERR] cpu not found at index', session.cpuIndex);
+            throw new Error('CPU pokemon not found');
+        }
+        if (!player) {
+            console.log('[cpuAttack][ERR] player not found at index', session.playerIndex);
+            throw new Error('Player pokemon not found');
+        }
+
+        const move = cpu.moves && cpu.moves[Math.floor(Math.random() * cpu.moves.length)];
+        if (!move) {
+            console.log('[cpuAttack][ERR] cpu has no valid moves, cpu.moves=', cpu.moves);
+            throw new Error('CPU has no valid move');
+        }
+
+        const beforeHp = player.currentHp;
+        const damage = this.calculateDamage(cpu.attack, player.defense, move.power ?? 0);
+
+        console.log(`[cpuAttack] ${cpu.name} uses ${move.name} (power=${move.power}) against ${player.name} (hp before=${beforeHp}) -> damage=${damage}`);
+
+        player.currentHp = Math.max(0, (Number(player.currentHp) || 0) - damage);
+
+        console.log(`[cpuAttack] ${player.name} hp after=${player.currentHp}`);
+
+        // Jogador morreu?
+        if (player.currentHp === 0) {
+            console.log(`[cpuAttack] ${player.name} fainted, attempting advancePlayer()`);
+            if (!this.advancePlayer(session)) {
+                session.status = 'FINISHED';
+                session.result = 'DEFEAT';
+                console.log('[cpuAttack] Player has no more pokemon -> CPU VICTORY');
+                const saved = await this.sessionRepo.save(session);
+                console.log('[cpuAttack] saved session after defeat', { id: saved.id, status: saved.status, result: saved.result });
+                return saved;
+            } else {
+                console.log('[cpuAttack] advancePlayer succeeded, new playerIndex=', session.playerIndex);
             }
-            battle.forcedSwitch = true;
         }
 
-        battle.turn = 'PLAYER';
-        return battle;
+        session.turn = 'PLAYER';
+        const saved = await this.sessionRepo.save(session);
+        console.log('[cpuAttack] saved session after cpu attack', {
+            id: saved.id,
+            turn: saved.turn,
+            playerIndex: saved.playerIndex,
+            cpuIndex: saved.cpuIndex,
+            playerCurrentHp: saved.team && saved.team[saved.playerIndex] && saved.team[saved.playerIndex].currentHp,
+            cpuCurrentHp: saved.cpuTeam && saved.cpuTeam[saved.cpuIndex] && saved.cpuTeam[saved.cpuIndex].currentHp,
+        });
+
+        return saved;
     }
 
-    async switchPokemon(sessionId: string, newIndex: number): Promise<BattleState> {
-        const battle = this.get(sessionId);
+    async getBattleState(sessionId: string): Promise<Session> {
+        return this.getSession(sessionId);
+    }
 
-        if (battle.playerTeam[newIndex].currentHp <= 0) {
-            throw new Error('Cannot switch to fainted pokemon');
+    // =========================
+    // Helpers
+    // =========================
+
+    private async getSession(sessionId: string): Promise<Session> {
+        const session = await this.sessionRepo.findOneBy({ id: sessionId });
+        if (!session) throw new Error('Sessão não encontrada');
+        return session;
+    }
+
+    private calculateDamage(attack: number, defense: number, power: number): number {
+        return Math.max(1, Math.floor((attack * power) / (defense + 10)));
+    }
+
+    /* helpers with logs */
+    private advanceCpu(session: Session): boolean {
+        const start = session.cpuIndex + 1;
+        for (let i = start; i < (session.cpuTeam?.length || 0); i++) {
+            const p = session.cpuTeam![i];
+            if (p && (Number(p.currentHp) || 0) > 0) {
+                session.cpuIndex = i;
+                console.log('[advanceCpu] new cpuIndex=', i);
+                return true;
+            }
         }
-
-        battle.playerIndex = newIndex;
-        battle.forcedSwitch = false;
-        return battle;
+        console.log('[advanceCpu] no remaining cpu pokemon');
+        return false;
     }
 
-    async continueBattle(sessionId: string): Promise<BattleState> {
-        const battle = this.get(sessionId);
-        return battle;
+    private advancePlayer(session: Session): boolean {
+        const start = session.playerIndex + 1;
+        for (let i = start; i < (session.team?.length || 0); i++) {
+            const p = session.team![i];
+            if (p && (Number(p.currentHp) || 0) > 0) {
+                session.playerIndex = i;
+                console.log('[advancePlayer] new playerIndex=', i);
+                return true;
+            }
+        }
+        console.log('[advancePlayer] no remaining player pokemon');
+        return false;
     }
 
-    private calculateDamage(atk: number, def: number, power: number): number {
-        return Math.max(1, Math.floor((atk / def) * power * 0.5));
-    }
-
-    private advanceCpu(battle: BattleState): boolean {
-        const next = battle.cpuTeam.findIndex(p => p.currentHp > 0);
-        if (next === -1) return false;
-        battle.cpuIndex = next;
-        return true;
-    }
-
-    private advancePlayer(battle: BattleState): boolean {
-        const next = battle.playerTeam.findIndex(p => p.currentHp > 0);
-        if (next === -1) return false;
-        battle.playerIndex = next;
-        return true;
-    }
-
-    private get(sessionId: string): BattleState {
-        const battle = this.battles.get(sessionId);
-        if (!battle) throw new Error('Battle not initialized');
-        return battle;
-    }
 }

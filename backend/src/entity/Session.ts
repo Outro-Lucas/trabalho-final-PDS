@@ -3,16 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 
-export type SessionStatus =
-  | 'CREATED'
-  | 'POKEMONS_READY'
-  | 'READY'
-  | 'FINISHED';
-
-export type SessionResult = 'VICTORY' | 'DEFEAT' | 'CANCELLED';
+export type BattleStatus = 'READY' | 'IN_BATTLE' | 'FINISHED'
+export type BattleTurn = 'PLAYER' | 'CPU';
+export type BattleResult = 'VICTORY' | 'DEFEAT' | null;
 
 @Entity()
 export class Session {
@@ -22,17 +18,17 @@ export class Session {
   @Column()
   userId!: string;
 
-  @Column({ type: 'integer' })
-  difficulty!: number;
+  @Column()
+  difficulty!: 1 | 2 | 3;
 
-  @Column({ type: 'integer', default: 1 })
-  battle!: number;
+  @Column()
+  battle!: 1 | 2 | 3;
 
-  @Column({ type: 'text', nullable: true })
-  status!: SessionStatus;
+  @Column({ type: 'varchar', default: 'READY' })
+  status!: BattleStatus;
 
-  @Column({ type: 'simple-json', nullable: true })
-  availablePokemons!: any[] | null;
+  @Column({ type: 'varchar', nullable: true })
+  turn!: BattleTurn | null;
 
   @Column({ type: 'simple-json', nullable: true })
   team!: any[] | null;
@@ -40,11 +36,14 @@ export class Session {
   @Column({ type: 'simple-json', nullable: true })
   cpuTeam!: any[] | null;
 
-  @Column({ type: 'text', nullable: true })
-  result!: SessionResult | null;
+  @Column({ type: 'int', default: 0 })
+  playerIndex!: number;
 
-  @Column({ type: 'simple-json', nullable: true })
-  battleState!: any | null;
+  @Column({ type: 'int', default: 0 })
+  cpuIndex!: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  result!: BattleResult;
 
   @CreateDateColumn()
   createdAt!: Date;

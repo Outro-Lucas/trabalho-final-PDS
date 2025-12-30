@@ -31,9 +31,9 @@ export class SessionController {
     }
   };
 
-  private getPokemons = async (req: Request, res: Response) => {
+  private getPokemons = async (_req: Request, res: Response) => {
     try {
-      const pokemons = await this.service.generatePokemons(req.params.id);
+      const pokemons = await this.service.generatePokemons();
       res.json(pokemons);
     } catch (e: any) {
       res.status(400).json({ error: e.message });

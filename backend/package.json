@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "check": "tsc --noEmit",
+    "check:strict": "tsc --noEmit --strict"
   },
   "dependencies": {
     "axios": "^1.6.7",
