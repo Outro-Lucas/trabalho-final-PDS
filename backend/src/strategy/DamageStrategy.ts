@@ -1,11 +1,9 @@
-import { MoveDTO, PokemonDTO } from '../adapter/PokeApiAdapter';
-
 export class DamageStrategy {
 
   calculateDamage(
-    attacker: PokemonDTO,
-    defender: PokemonDTO,
-    move: MoveDTO
+    attacker: any,
+    defender: any,
+    move: any
   ): number {
     const baseDamage =
       ((attacker.attack / defender.defense) * move.power) / 2;

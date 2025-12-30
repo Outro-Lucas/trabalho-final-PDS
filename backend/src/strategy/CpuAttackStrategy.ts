@@ -1,4 +1,3 @@
-import { MoveDTO, PokemonDTO } from '../adapter/PokeApiAdapter';
 import { DamageStrategy } from './DamageStrategy';
 
 export class CpuAttackStrategy {
@@ -6,12 +5,12 @@ export class CpuAttackStrategy {
   private damageStrategy = new DamageStrategy();
 
   chooseMove(
-    attacker: PokemonDTO,
-    defender: PokemonDTO
-  ): MoveDTO {
+    attacker: any,
+    defender: any
+  ): any {
     const moves = attacker.moves;
 
-    let bestMove: MoveDTO | null = null;
+    let bestMove: any | null = null;
     let bestDamage = -1;
 
     for (const move of moves) {

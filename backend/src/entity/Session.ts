@@ -18,11 +18,11 @@ export class Session {
   @Column()
   userId!: string;
 
-  @Column()
-  difficulty!: 1 | 2 | 3;
+  @Column({ type: 'int' })
+  difficulty!: number;
 
-  @Column()
-  battle!: 1 | 2 | 3;
+  @Column({ type: 'int' })
+  battle!: number;
 
   @Column({ type: 'varchar', default: 'READY' })
   status!: BattleStatus;

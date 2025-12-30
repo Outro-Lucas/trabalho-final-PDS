@@ -4,7 +4,7 @@ export class PokeApiAdapter {
   private readonly baseUrl = 'https://pokeapi.co/api/v2';
 
   async getRandomPokemons(quantity: number): Promise<any[]> {
-    const maxPokemonId = 151;
+    const maxPokemonId = 493;
 
     const ids = new Set<number>();
     while (ids.size < quantity) {
