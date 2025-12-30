@@ -55,6 +55,9 @@ export class SessionService {
     session.team = team;
     session.status = 'READY';
 
+    const cpuTeam = await this.pokeApi.getRandomPokemons(3);
+    session.cpuTeam = cpuTeam;
+
     await this.sessionRepo.save(session);
   }
 

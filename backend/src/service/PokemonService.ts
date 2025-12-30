@@ -1,13 +1,13 @@
-import { PokeApiAdapter, PokemonDTO } from '../adapter/PokeApiAdapter';
+import { PokeApiAdapter } from '../adapter/PokeApiAdapter';
 
 export class PokemonService {
   private adapter = new PokeApiAdapter();
 
-  async getRandomPokemons(count: number): Promise<PokemonDTO[]> {
-    const pokemons: PokemonDTO[] = [];
+  async getRandomPokemons(count: number): Promise<any[]> {
+    const pokemons: any[] = [];
 
     while (pokemons.length < count) {
-      const pokemon = await this.adapter.getRandomPokemon();
+      const pokemon = await this.adapter.getRandomPokemons(6);
       pokemons.push(pokemon);
     }
 

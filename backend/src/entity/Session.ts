@@ -37,6 +37,9 @@ export class Session {
   @Column({ type: 'simple-json', nullable: true })
   team!: any[] | null;
 
+  @Column({ type: 'simple-json', nullable: true })
+  cpuTeam!: any[] | null;
+
   @Column({ type: 'text', nullable: true })
   result!: SessionResult | null;
 
