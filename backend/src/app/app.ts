@@ -2,9 +2,12 @@ import express, { Application } from 'express';
 import { UserController } from '../controller/UserController';
 import { BattleController } from '../controller/BattleController';
 import { SessionController } from '../controller/SessionController';
+import cors from 'cors';
 
 export function createServer(): Application {
   const app = express();
+
+  app.use(cors());
 
   app.use(express.json());
 
