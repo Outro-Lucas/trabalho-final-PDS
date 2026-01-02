@@ -1,0 +1,27 @@
+@if (inSession()) {
+<h1>Inicie um novo jogo!</h1>
+<select [value]="difficulty()" (change)="difficulty.set(+$any($event.target).value)">
+  <option value="" disabled selected>Selecione o nível</option>
+  <option value="1">Fácil</option>
+  <option value="2">Médio</option>
+  <option value="3">Difícil</option>
+</select>
+
+<p>Valor selecionado: {{ difficulty() }}</p>
+<button (click)="newSession()" [disabled]="loading()">Criar</button>
+
+} @else {
+<input
+  type="text"
+  placeholder="Nome"
+  [value]="nickname()"
+  (input)="nickname.set($any($event.target).value)"
+/>
+
+<button (click)="createUser()" [disabled]="loading()">Criar</button>
+
+@if (error()) {
+<div style="color: red; margin-top: 8px">
+  {{ error() }}
+</div>
+} }

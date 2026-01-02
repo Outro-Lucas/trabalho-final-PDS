@@ -41,6 +41,8 @@ export class PokeApiAdapter {
         defense: data.stats.find((s: any) => s.stat.name === 'defense').base_stat,
         types: data.types.map((t: any) => t.type.name),
         moves,
+        front: data.sprites.front_default,
+        back: data.sprites.back_default,
       });
     }
 

@@ -1,0 +1,29 @@
+<h2>SEU TIME DE POKÉMONS</h2>
+
+@if (pokemons().length === 0) {
+<p>NENHUM POKÉMON ENCONTRADO.</p>
+} @else {
+
+<ul>
+  @for (pokemon of pokemons(); track $index; let i = $index) {
+  <li>
+    <label>
+      <input
+        type="checkbox"
+        [checked]="isSelected(i)"
+        (change)="togglePokemon(i)"
+        [disabled]="!isSelected(i) && selectedIndexes().length >= 3"
+      />
+
+      <img [src]="pokemon.front" [alt]="pokemon.name" width="80" />
+
+      {{ pokemon.name.toUpperCase() }}
+    </label>
+  </li>
+  }
+</ul>
+
+<p>SELECIONADOS: {{ selectedIndexes().length }} / 3</p>
+
+<button (click)="confirmTeam()" [disabled]="selectedIndexes().length !== 3">CONFIRMAR TIME</button>
+}
