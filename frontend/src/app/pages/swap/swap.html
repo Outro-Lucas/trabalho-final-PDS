@@ -1,1 +1,56 @@
-<p>swap works!</p>
+<h2>PREPARAÇÃO DO TIME</h2>
+
+<div class="trade-container">
+  @if (!session()) {
+  <p>NENHUMA SESSÃO ENCONTRADA.</p>
+  } @else { @if (trading()) {
+
+  <p>SELECIONE UM PARA SEU TIME</p>
+  <div class="pokemon-list">
+    @for (pokemon of enemy; track $index) {
+    <div class="box">
+      <input type="checkbox" [checked]="isEnemySelected($index)" (change)="toggleEnemy($index)" />
+      <label>
+        <img [src]="pokemon.front" width="100" />
+        {{ pokemon.name | uppercase }}
+      </label>
+    </div>
+    }
+  </div>
+
+  <p>SELECIONE O QUE SAIRÁ DO SEU TIME</p>
+  <div class="pokemon-list">
+    @for (pokemon of player; track $index) {
+    <div class="box">
+      <input type="checkbox" [checked]="isPlayerSelected($index)" (change)="togglePlayer($index)" />
+      <label>
+        <img [src]="pokemon.front" width="100" />
+        {{ pokemon.name | uppercase }}
+      </label>
+    </div>
+    }
+  </div>
+
+  <div class="decision">
+    <div class="btn-list">
+      <button
+        class="btn"
+        (click)="confirmTrade()"
+        [disabled]="selectedEnemyIndex() === null || selectedPlayerIndex() === null"
+      >
+        TROCAR
+      </button>
+      <button class="btn" (click)="refuseSwap()">CANCELAR</button>
+    </div>
+  </div>
+
+  } @else {
+  <div class="decision">
+    <p>DESEJA REALIZAR A TROCA?</p>
+    <div class="btn-list">
+      <button class="btn" (click)="confirmSwap()">SIM</button>
+      <button class="btn" (click)="refuseSwap()">NÃO</button>
+    </div>
+  </div>
+  } }
+</div>

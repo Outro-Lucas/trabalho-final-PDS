@@ -1,0 +1,26 @@
+@if (session()) {
+
+<div class="battle-screen finish-screen">
+  <!-- TEXTO CENTRAL -->
+  <div class="finish-message">
+    <p class="title">PARABÉNS!</p>
+    <p class="subtitle">VOCÊ CONCLUIU O DESAFIO</p>
+  </div>
+
+  <!-- TIME FINAL -->
+  <div class="final-team">
+    @for (pokemon of team; track $index) {
+    <div class="pokemon">
+      <img [src]="pokemon.front" [alt]="pokemon.name" />
+      <span>{{ pokemon.name | uppercase }}</span>
+    </div>
+    }
+  </div>
+
+  <!-- MENU -->
+  <div class="menu center">
+    <button class="start-btn" (click)="newSession()">▶ NOVA SESSÃO</button>
+  </div>
+</div>
+
+}

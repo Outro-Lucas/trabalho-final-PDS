@@ -16,6 +16,7 @@ export class BattleController {
     this.router.get('/:sessionId', this.getBattleState);
     this.router.post('/reward', this.reward);
     this.router.post('/next', this.next);
+    this.router.patch('/finish', this.finishSession);
   }
 
   private startBattle = async (req: Request, res: Response) => {
@@ -58,11 +59,6 @@ export class BattleController {
     }
   };
 
-  // dentro do controller (adicionar após os outros handlers)
-  /**
-   * Recompensa (opcional): troca um pokemon do jogador por um da CPU
-   * body: { sessionId, loseIndex, cpuIndex }
-   */
   private reward = async (req: Request, res: Response) => {
     try {
       const { sessionId, loseIndex, cpuIndex } = req.body;
@@ -73,10 +69,6 @@ export class BattleController {
     }
   };
 
-  /**
-   * Próxima batalha (inicia a próxima fase)
-   * body: { sessionId }
-   */
   private next = async (req: Request, res: Response) => {
     try {
       const { sessionId } = req.body;
@@ -86,5 +78,15 @@ export class BattleController {
       res.status(400).json({ error: e.message });
     }
   };
+
+  private finishSession = async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.body;
+      const session = await this.service.finishSession(sessionId, 'VICTORY');
+      res.json(session);
+    } catch (e: any) {
+      res.status(400).json({ error: e.message });
+    }
+  }
 
 }

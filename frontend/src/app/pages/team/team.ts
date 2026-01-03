@@ -3,7 +3,6 @@ import { SessionService } from '../../services/session.service';
 import { Router } from '@angular/router';
 
 @Component({
-  standalone: true,
   selector: 'app-team',
   templateUrl: './team.html',
   styleUrl: './team.css',

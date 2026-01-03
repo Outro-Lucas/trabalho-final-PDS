@@ -1,1 +1,80 @@
-<p>battle works!</p>
+@if (session()) {
+
+<div class="battle-screen">
+  <!-- ENEMY HUD -->
+  <div class="hud enemy-hud">
+    <div class="hud-header">
+      <span class="name">{{ enemy?.name | uppercase }}</span>
+      <span class="level">:L19</span>
+    </div>
+
+    <div class="hp-bar">
+      <span class="hp-label">HP:</span>
+      <div class="bar">
+        <div class="fill" [style.width.%]="enemyHpPercent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENEMY SPRITE -->
+  <div class="enemy-sprite">
+    <img [src]="enemy?.front" />
+  </div>
+
+  <!-- PLAYER SPRITE -->
+  <div class="player-sprite">
+    <img [src]="player?.back" />
+  </div>
+
+  <!-- PLAYER HUD -->
+  <div class="hud player-hud">
+    <div class="hud-header">
+      <span class="name">{{ player?.name | uppercase }}</span>
+      <span class="level">:L25</span>
+    </div>
+
+    <div class="hp-bar">
+      <span class="hp-label">HP:</span>
+      <div class="bar">
+        <div class="fill" [style.width.%]="playerHpPercent"></div>
+      </div>
+    </div>
+
+    <div class="hp-text">{{ player?.currentHp }} / {{ player?.hp }}</div>
+  </div>
+
+  <!-- ===================== -->
+  <!--        MENU           -->
+  <!-- ===================== -->
+
+  <!-- READY -->
+  @if (session()?.status === 'READY') {
+  <div class="menu center">
+    <button class="start-btn" (click)="startBattle()">▶ INICIAR BATALHA</button>
+  </div>
+  }
+
+  <!-- IN BATTLE -->
+  @if (session()?.status === 'IN_BATTLE') {
+  <div class="menu">
+    @for (move of player?.moves; track $index) {
+    <div class="move" (click)="onSelectMove($index)">▶ {{ move.name | uppercase }}</div>
+    }
+  </div>
+  }
+
+  <!-- FINISHED -->
+  @if (session()?.status === 'FINISHED') {
+  <div class="menu center">
+    <div class="result">
+      BATALHA FINALIZADA<br />
+      RESULTADO: {{ session()?.result }}
+    </div>
+
+    @if (session()?.result === 'VICTORY') { } @else{
+    <button class="start-btn" (click)="newSession()">▶ NOVA SESSÃO</button>
+    }
+  </div>
+  }
+</div>
+}

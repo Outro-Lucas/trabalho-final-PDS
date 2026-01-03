@@ -1,0 +1,130 @@
+/* CENTRALIZA A TELA */
+:host {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.menu.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.start-btn {
+  font-family: monospace;
+  font-size: 16px;
+  border: 3px solid #000;
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.start-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.result {
+  text-align: center;
+  font-size: 14px;
+}
+
+/* BATTLE SCREEN */
+.battle-screen {
+  width: 520px;
+  height: 380px;
+  background: #f8f8f8;
+  border: 4px solid #000;
+  position: relative;
+  font-family: monospace;
+}
+
+/* HUDs */
+.hud {
+  background: #fff;
+  border: 3px solid #000;
+  padding: 6px;
+  width: 220px;
+}
+
+.enemy-hud {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.player-hud {
+  position: absolute;
+  bottom: 100px;
+  left: 20px;
+}
+
+/* HP BAR */
+.hp-bar {
+  display: flex;
+  align-items: center;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  background: #ccc;
+  margin-left: 6px;
+  border: 1px solid #000;
+}
+
+.fill {
+  height: 100%;
+  background: #2ecc71;
+}
+
+/* SPRITES */
+.enemy-sprite {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+}
+
+.enemy-sprite img {
+  width: 150px;
+  height: auto;
+}
+
+.player-sprite {
+  position: absolute;
+  /* bottom: 140px;
+  left: 80px; */
+  bottom: 125px;
+  left: 35px;
+}
+
+.player-sprite img {
+  width: 200px;
+  height: auto;
+}
+
+/* MENU DE MOVES */
+.menu {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  height: 50px;
+  border: 4px solid #000;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 8px;
+  gap: 6px;
+}
+
+.move {
+  cursor: pointer;
+  user-select: none;
+}
+
+.move:hover {
+  background: #000;
+  color: #fff;
+}

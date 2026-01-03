@@ -31,6 +31,11 @@ export class BattleService {
         }
 
         const player = session.team![session.playerIndex];
+        if (!player || player.currentHp <= 0) {
+            if (!this.advancePlayer(session)) {
+                return this.finishSession(session.id, 'DEFEAT');
+            }
+        }
         const cpu = session.cpuTeam![session.cpuIndex];
         const move = player.moves[moveIndex];
 
@@ -41,19 +46,9 @@ export class BattleService {
         if (cpu.currentHp === 0) {
             // se não houver mais pokémon vivo na cpu, jogador vence esta batalha
             if (!this.advanceCpu(session)) {
-                // se era a última batalha (battle === 3) -> encerrar sessão e salvar histórico
-                if (session.battle >= 3) {
-                    session.status = 'FINISHED';
-                    session.result = 'VICTORY';
-                    await this.sessionRepo.save(session);
-                    // registra histórico definitivo
-                    await this.sessionService.finishSession(session.id, 'VICTORY');
-                    return session;
-                }
-
-                // batalha vencida, ainda há próximas batalhas possíveis
-                session.status = 'FINISHED';   // marca fim da batalha atual
-                session.result = 'VICTORY';    // aguarda reward / next
+                // batalha vencida (não encerra sessão)
+                session.status = 'FINISHED';
+                session.result = 'VICTORY';
                 await this.sessionRepo.save(session);
                 return session;
             }
@@ -71,7 +66,20 @@ export class BattleService {
             throw new Error('Não é o turno da CPU');
         }
 
-        const cpu = session.cpuTeam![session.cpuIndex];
+        let cpu = session.cpuTeam![session.cpuIndex];
+
+        // se o pokemon atual estiver morto, tenta avançar para o próximo
+        if (!cpu || cpu.currentHp <= 0) {
+            if (!this.advanceCpu(session)) {
+                // todos os pokemons da CPU morreram -> jogador vence a batalha atual
+                session.status = 'FINISHED';
+                session.result = 'VICTORY';
+                await this.sessionRepo.save(session);
+                return session;
+            }
+            cpu = session.cpuTeam![session.cpuIndex];
+        }
+
         const player = session.team![session.playerIndex];
 
         const move =
@@ -80,17 +88,16 @@ export class BattleService {
         const damage = this.calculateDamage(cpu.attack, player.defense, (move && move.power) || 0);
         player.currentHp = Math.max(0, (Number(player.currentHp) || 0) - damage);
 
-        // Jogador morreu?
+        // jogador morreu?
         if (player.currentHp === 0) {
             if (!this.advancePlayer(session)) {
-                // jogador perdeu a sessão (derrota)
+                // jogador perdeu a sessão -> salva manualmente e retorna
                 session.status = 'FINISHED';
                 session.result = 'DEFEAT';
                 await this.sessionRepo.save(session);
-                await this.sessionService.finishSession(session.id, 'DEFEAT');
                 return session;
             }
-            // se ainda tiver pokemons, continua automaticamente; no seu design a ordem permanece
+            // se ainda tiver pokemons vivos, continua automaticamente; playerIndex já atualizado
         }
 
         session.turn = 'PLAYER';
@@ -144,7 +151,6 @@ export class BattleService {
         return this.sessionRepo.save(session);
     }
 
-
     async nextBattle(sessionId: string): Promise<Session> {
         console.log('[NEXT] 1 - iniciando nextBattle', { sessionId });
 
@@ -159,15 +165,6 @@ export class BattleService {
         if (session.result !== 'VICTORY' || session.status !== 'FINISHED') {
             console.log('[NEXT] ERRO - estado inválido');
             throw new Error('Não é possível iniciar próxima batalha agora');
-        }
-
-        if (session.battle >= 3) {
-            console.log('[NEXT] 3 - batalha final já alcançada');
-            session.status = 'FINISHED';
-            session.result = 'VICTORY';
-            await this.sessionRepo.save(session);
-            await this.sessionService.finishSession(session.id, 'VICTORY');
-            return session;
         }
 
         console.log('[NEXT] 4 - incrementando batalha');
@@ -215,6 +212,28 @@ export class BattleService {
 
         console.log('[NEXT] 11 - nextBattle concluído com sucesso');
         return saved;
+    }
+
+    async finishSession(
+        sessionId: string,
+        result: 'VICTORY' | 'DEFEAT'
+    ): Promise<Session> {
+        const session = await this.getSession(sessionId);
+
+        return this.finishSessionInternal(session, result);
+    }
+
+    private async finishSessionInternal(
+        session: Session,
+        result: 'VICTORY' | 'DEFEAT'
+    ): Promise<Session> {
+        session.status = 'FINISHED';
+        session.result = result;
+
+        await this.sessionRepo.save(session);
+        await this.sessionService.finishSession(session.id, result);
+
+        return session;
     }
 
     async getBattleState(sessionId: string): Promise<Session> {

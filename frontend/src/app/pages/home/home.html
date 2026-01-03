@@ -1,27 +1,56 @@
-@if (inSession()) {
-<h1>Inicie um novo jogo!</h1>
-<select [value]="difficulty()" (change)="difficulty.set(+$any($event.target).value)">
-  <option value="" disabled selected>Selecione o nível</option>
-  <option value="1">Fácil</option>
-  <option value="2">Médio</option>
-  <option value="3">Difícil</option>
-</select>
+<div class="battle-screen home-screen">
+  <!-- TÍTULO -->
+  <div class="home-header">
+    <p class="title">POKÉMON BATTLE</p>
+    <p class="subtitle">INICIE SUA JORNADA</p>
+  </div>
 
-<p>Valor selecionado: {{ difficulty() }}</p>
-<button (click)="newSession()" [disabled]="loading()">Criar</button>
+  <!-- CONTEÚDO -->
+  <div class="home-content">
+    @if (!inSession()) {
 
-} @else {
-<input
-  type="text"
-  placeholder="Nome"
-  [value]="nickname()"
-  (input)="nickname.set($any($event.target).value)"
-/>
+    <input
+      class="input"
+      type="text"
+      placeholder="Digite seu nickname"
+      [value]="nickname()"
+      (input)="nickname.set($any($event.target).value)"
+    />
 
-<button (click)="createUser()" [disabled]="loading()">Criar</button>
+    @if (error()) {
+    <p class="error">{{ error() }}</p>
+    } } @else {
 
-@if (error()) {
-<div style="color: red; margin-top: 8px">
-  {{ error() }}
+    <p class="label">SELECIONE A DIFICULDADE</p>
+
+    <select
+      class="select"
+      [value]="difficulty()"
+      (change)="difficulty.set(+$any($event.target).value)"
+    >
+      <option value="" disabled selected>Escolha</option>
+      <option value="1">FÁCIL</option>
+      <option value="2">MÉDIO</option>
+      <option value="3">DIFÍCIL</option>
+    </select>
+
+    }
+  </div>
+
+  <!-- MENU -->
+  <div class="menu center">
+    @if (!inSession()) {
+    <button class="start-btn" (click)="createUser()" [disabled]="loading()">
+      ▶ CRIAR TREINADOR
+    </button>
+    } @else {
+    <button
+      class="start-btn"
+      (click)="newSession()"
+      [disabled]="loading() || difficulty() === null"
+    >
+      ▶ INICIAR JOGO
+    </button>
+    }
+  </div>
 </div>
-} }

@@ -4,24 +4,22 @@
 <p>NENHUM POKÉMON ENCONTRADO.</p>
 } @else {
 
-<ul>
+<div class="pokemon-list">
   @for (pokemon of pokemons(); track $index; let i = $index) {
-  <li>
-    <label>
-      <input
-        type="checkbox"
-        [checked]="isSelected(i)"
-        (change)="togglePokemon(i)"
-        [disabled]="!isSelected(i) && selectedIndexes().length >= 3"
-      />
-
-      <img [src]="pokemon.front" [alt]="pokemon.name" width="80" />
-
+  <div class="box">
+    <input
+      type="checkbox"
+      [checked]="isSelected(i)"
+      (change)="togglePokemon(i)"
+      [disabled]="!isSelected(i) && selectedIndexes().length >= 3"
+    />
+    <label for="sport1">
+      <img [src]="pokemon.front" [alt]="pokemon.name" width="100" />
       {{ pokemon.name.toUpperCase() }}
     </label>
-  </li>
+  </div>
   }
-</ul>
+</div>
 
 <p>SELECIONADOS: {{ selectedIndexes().length }} / 3</p>
 

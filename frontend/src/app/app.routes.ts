@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { Battle } from './pages/battle/battle';
 import { Swap } from './pages/swap/swap';
 import { Team } from './pages/team/team';
+import { Finish } from './pages/finish/finish';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,10 @@ export const routes: Routes = [
   {
     path: `swap`,
     component: Swap,
+  },
+  {
+    path: `finish`,
+    component: Finish,
   },
   {
     path: '**',

@@ -1,0 +1,116 @@
+h2 {
+  text-align: center;
+}
+
+.trade-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.decision {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  flex-direction: column;
+}
+
+.btn-list {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn {
+  font-family: monospace;
+  font-size: 16px;
+  border: 3px solid #000;
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.pokemon-list {
+  display: flex;
+  gap: 16px;
+}
+
+.box {
+  height: 200px;
+  width: 170px;
+  position: relative;
+}
+
+input[type='checkbox'] {
+  -webkit-appearance: none;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 3px solid transparent;
+  outline: none;
+  box-shadow: 15px 15px 25px rgba(2, 28, 53, 0.05);
+}
+
+input[type='checkbox']:after {
+  position: absolute;
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 400;
+  content: '\f111';
+  font-size: 22px;
+  top: 10px;
+  left: 10px;
+  color: #e2e6f3;
+}
+
+input[type='checkbox']:hover {
+  transform: scale(1.08);
+}
+
+input[type='checkbox']:checked {
+  border: 3px solid #478bfb;
+}
+
+input[type='checkbox']:checked:after {
+  font-weight: 900;
+  content: '\f058';
+  color: #478bfb;
+}
+
+label {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  height: 80%;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  cursor: pointer;
+}
+
+label .fas {
+  font-size: 60px;
+  color: #2c2c51;
+}
+
+input[type='checkbox']:checked + label .fas {
+  animation: grow 0.5s;
+}
+
+@keyframes grow {
+  50% {
+    font-size: 80px;
+  }
+}
